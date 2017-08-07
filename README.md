@@ -150,7 +150,7 @@ swipe menu
 
 
 另外listview 版本的看这里：[CBPullRefreshListView](https://github.com/yilylong/CBPullRefreshListView)
-
+感谢Xrecyclerview XlistView
 
 
 
