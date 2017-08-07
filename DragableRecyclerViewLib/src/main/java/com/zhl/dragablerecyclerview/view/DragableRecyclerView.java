@@ -37,7 +37,7 @@ import java.util.Date;
 
 
 /**
- * 描述：
+ * 描述：可拖拽排序，侧滑删除，下拉刷新上拉加载的recyclerview
  * Created by zhaohl on 2017-7-27.
  */
 
@@ -77,24 +77,23 @@ public class DragableRecyclerView extends RecyclerView {
     private int mHeaderViewHeight; // header view's height
     private int mFooterViewHeight; // header view's height
     private boolean mEnablePullRefresh = true;
-
     private boolean mPullRefreshing = false; // is refreashing.
     private boolean mEnablePullLoad;
     private boolean mPullLoading;// isLoading
-    private boolean mIsFooterReady = false;
+    //    private boolean mIsFooterReady = false;
     // total list items, used to detect is at the bottom of listview.
-    private int mTotalItemCount = 0;
+//    private int mTotalItemCount = 0;
     // for mScroller, scroll back from header or footer.
     private int mScrollBack;
     private final static int SCROLLBACK_HEADER = 0;
     private final static int SCROLLBACK_FOOTER = 1;
     private final static int SCROLL_DURATION = 300; // scroll back duration
-    private final static int PULL_LOAD_MORE_DELTA = 150; // when pull up >= 150px
+    //    private final static int PULL_LOAD_MORE_DELTA = 150; // when pull up >= 150px
     private final static float OFFSET_RADIO = 2.3f; // support iOS like pull
     // feature.
-    private boolean showTopSearchBar = false;
-    private CBRefreshHeaderView topSearchView;
-    private int topSearchBarHeight = 0;
+//    private boolean showTopSearchBar = false;
+//    private CBRefreshHeaderView topSearchView;
+//    private int topSearchBarHeight = 0;
     private Scroller mScroller;
     private long refreshTime;
     private LinearLayout.LayoutParams headerParams;
@@ -179,7 +178,6 @@ public class DragableRecyclerView extends RecyclerView {
 
             @Override
             public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
-                Log.i("mytag", "拖动====dy==" + dY);
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
             }
 
@@ -192,7 +190,6 @@ public class DragableRecyclerView extends RecyclerView {
                 if (null != onItemDragListener && onItemDragListener.onDragScaleable() && actionState == ItemTouchHelper.ACTION_STATE_DRAG) {
                     ViewCompat.setScaleX(viewHolder.itemView, 1.1f);
                     ViewCompat.setScaleY(viewHolder.itemView, 1.1f);
-//                    ((SwipeMenuAdapter.SwipeMenuViewHolder)viewHolder).getOrignalHolder().itemView.setBackgroundColor(Color.BLUE);
                 }
                 if (null != onItemDragListener && viewHolder != null) {
                     onItemDragListener.onSelectedChanged(((SwipeMenuAdapter.SwipeMenuViewHolder) viewHolder).getOrignalHolder(), actionState);
@@ -207,11 +204,6 @@ public class DragableRecyclerView extends RecyclerView {
                 if (swipeFlag) {
                     swipeEnable = true;
                 }
-//                if (viewHolder.getAdapterPosition() == fixedPos) {
-//                    viewHolder.itemView.setBackgroundResource(fixedChannelBg);
-//                } else {
-//                    viewHolder.itemView.setBackgroundResource(channelItemBg);
-//                }
                 if (null != onItemDragListener) {
                     onItemDragListener.onDragCompleted(recyclerView, ((SwipeMenuAdapter.SwipeMenuViewHolder) viewHolder).getOrignalHolder());
                 }
@@ -265,7 +257,11 @@ public class DragableRecyclerView extends RecyclerView {
         });
     }
 
-
+    /**
+     * 设置侧滑菜单构造器
+     *
+     * @param menuCreator
+     */
     public void setMenuCreator(SwipeMenuCreator menuCreator) {
         this.mMenuCreator = menuCreator;
     }
@@ -348,18 +344,15 @@ public class DragableRecyclerView extends RecyclerView {
         }
     }
 
-    ;
-
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-//        mGestureDetector.onTouchEvent(ev);
+        mGestureDetector.onTouchEvent(ev);
         if (mLastY == -1) {
             mLastY = ev.getRawY();
         }
 
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                Log.d("MyTag", "按下-x=" + ev.getX());
                 mLastY = ev.getRawY();
                 mDownX = ev.getX();
                 mDownY = ev.getY();
@@ -384,7 +377,6 @@ public class DragableRecyclerView extends RecyclerView {
                 if (Math.abs(disX) > touchSlop && Math.abs(disX) > Math.abs(disY)) {// 左右滑动
                     mTouchState = TOUCH_STATE_X;
                     if (swipeEnable && mTouchView != null) {
-                        Log.d("mytag", "侧滑菜单移动=" + disX);
                         if (longpressDragFlag) {
                             isLongPressDragEnabled = false;
                         }
@@ -412,7 +404,6 @@ public class DragableRecyclerView extends RecyclerView {
                 }
                 break;
             default:
-                Log.d("MyTag", "抬起");
                 mLastY = -1; // reset
                 switch (mTouchState) {
                     case TOUCH_STATE_X:
@@ -467,62 +458,6 @@ public class DragableRecyclerView extends RecyclerView {
         return super.onTouchEvent(ev);
     }
 
-    public void setPullRefreshEnable(boolean enable) {
-        mEnablePullRefresh = enable;
-        mHeaderView.setPullRefreshEnable(mEnablePullRefresh);
-    }
-
-    /**
-     * set the refresh header icon
-     *
-     * @param resName
-     */
-    public void setHeaderRefreshIcon(int resName) {
-        if (mHeaderView != null) {
-            mHeaderView.setHeaderIcon(resName);
-        }
-    }
-
-    public void setHeaderBg(int resName) {
-        if (mHeaderView != null) {
-            ((CBRefreshHeader) mHeaderView).setHeaderBg(resName);
-        }
-    }
-
-    /**
-     * set footer view background
-     *
-     * @param resName
-     */
-    public void setFooterBg(int resName) {
-        if (mFooterView != null) {
-            ((CBRefreshFooter) mFooterView).setFooterBg(resName);
-        }
-    }
-
-    public void setStyleChange(int state) {
-        mHeaderView.onStyleChange(state);
-        mFooterView.onStyleChange(state);
-    }
-
-    public void setPullLoadMoreEnable(boolean enable) {
-        mEnablePullLoad = enable;
-        if (!mEnablePullLoad) {
-            mFooterView.footerViewHide();
-            mFooterView.setOnClickListener(null);
-        } else {
-            mPullLoading = false;
-            mFooterView.footerViewShow();
-            mFooterView.setState(CBRefreshState.STATE_PULL_UP_TO_LOADMORE);
-            mFooterView.pullUpToLoadmore();
-            mFooterView.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    startLoadMore();
-                }
-            });
-        }
-    }
 
     private int getFirstVisiblePosition() {
         LayoutManager layoutManager = getLayoutManager();
@@ -572,73 +507,6 @@ public class DragableRecyclerView extends RecyclerView {
         return 0;
     }
 
-    public <T extends CBRefreshHeaderView> void setRefreshHeader(T header) {
-        if (header == null) {
-            return;
-        }
-        setPullRefreshEnable(true);
-        if(mWrapAdapter!=null){
-            mWrapAdapter.notifyItemRemoved(0);
-        }
-        mHeaderView = header;
-        mHeaderView.setLayoutParams(headerParams);
-        initHeaderHeight();
-        if(mWrapAdapter!=null){
-            mWrapAdapter.notifyItemInserted(0);
-        }
-    }
-
-    public <T extends CBRefreshHeaderView> void setLoadMoreFooter(T footer) {
-        if (footer == null) {
-            return;
-        }
-        setPullLoadMoreEnable(true);
-        if(mWrapAdapter!=null){
-            mWrapAdapter.notifyItemRemoved(mWrapAdapter.getItemCount()-1);
-        }
-        mFooterView = footer;
-        mFooterView.setLayoutParams(headerParams);
-        initHeaderHeight();
-        if(mWrapAdapter!=null){
-            mWrapAdapter.notifyItemInserted(mWrapAdapter.getItemCount()-1);
-        }
-    }
-
-
-    private void removeFooterView(CBRefreshHeaderView mFooterView) {
-        this.removeView(mFooterView);
-    }
-
-    /**
-     * set refreshTIme
-     *
-     * @param time
-     */
-    public void setRefreshTime(long time) {
-        if (time <= 0) {
-            setRefreshTime(null);
-        } else {
-            refreshTime = time;
-            setRefreshTime(Utils.getTimeDifferent(getContext(), time));
-        }
-    }
-
-    /**
-     * set last refresh time
-     *
-     * @param time
-     */
-    @SuppressLint("SimpleDateFormat")
-    public void setRefreshTime(String time) {
-        if (null == time) {
-            Date now = new Date();
-            SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-            mHeaderView.setRefreshTime(dateFormat.format(now));
-        } else {
-            mHeaderView.setRefreshTime(time);
-        }
-    }
-
     private int pointToPosition(int x, int y) {
         final int count = getChildCount();
         Rect frame = new Rect();
@@ -655,11 +523,15 @@ public class DragableRecyclerView extends RecyclerView {
         return pos;
     }
 
-    /**
-     * 更新刷新头高度
-     *
-     * @param delta
-     */
+    private void startLoadMore() {
+        mPullLoading = true;
+        mFooterView.onLoading();
+        mFooterView.setState(CBRefreshState.STATE_REFRESHING);
+        if (mPullRefreshListener != null) {
+            mPullRefreshListener.onLoadMore();
+        }
+    }
+
     private void updateHeaderHeight(float delta) {
         mHeaderView.setVisiableHeight((int) delta + mHeaderView.getVisiableHeight());
         if (mEnablePullRefresh && !mPullRefreshing) {
@@ -671,7 +543,6 @@ public class DragableRecyclerView extends RecyclerView {
                 mHeaderView.setState(CBRefreshState.STATE_PULL_TO_REFRESH);
             }
         }
-//        smoothScrollToPosition(1);// scroll to top each time
     }
 
     /**
@@ -694,22 +565,6 @@ public class DragableRecyclerView extends RecyclerView {
         mScroller.startScroll(0, height, 0, finalHeight - height, SCROLL_DURATION);
         // trigger computeScroll
         invalidate();
-    }
-
-    @Override
-    public void computeScroll() {
-        if (mScroller.computeScrollOffset()) {
-            if (mScrollBack == SCROLLBACK_HEADER) {
-                mHeaderView.setVisiableHeight(mScroller.getCurrY());
-                mHeaderView.onDragSlide(mScroller.getCurrY());
-            } else {
-                mFooterView.setLoadMorePullUpDistance(mScroller.getCurrY());
-                mFooterView.onDragSlide(mScroller.getCurrY());
-            }
-            postInvalidate();
-            invokeOnScrolling();
-        }
-        super.computeScroll();
     }
 
     /**
@@ -759,6 +614,194 @@ public class DragableRecyclerView extends RecyclerView {
 
     }
 
+    @Override
+    public void computeScroll() {
+        if (mScroller.computeScrollOffset()) {
+            if (mScrollBack == SCROLLBACK_HEADER) {
+                mHeaderView.setVisiableHeight(mScroller.getCurrY());
+                mHeaderView.onDragSlide(mScroller.getCurrY());
+            } else {
+                mFooterView.setLoadMorePullUpDistance(mScroller.getCurrY());
+                mFooterView.onDragSlide(mScroller.getCurrY());
+            }
+            postInvalidate();
+            invokeOnScrolling();
+        }
+        super.computeScroll();
+    }
+
+    /**
+     * 是否开启下拉刷新
+     *
+     * @param enable
+     */
+    public void setPullRefreshEnable(boolean enable) {
+        mEnablePullRefresh = enable;
+        mHeaderView.setPullRefreshEnable(mEnablePullRefresh);
+    }
+
+    /**
+     * 设置刷新头刷新图片
+     *
+     * @param resName
+     */
+    public void setHeaderRefreshIcon(int resName) {
+        if (mHeaderView != null) {
+            mHeaderView.setHeaderIcon(resName);
+        }
+    }
+
+    /**
+     * 设置刷新头背景
+     *
+     * @param resName
+     */
+    public void setHeaderBg(int resName) {
+        if (mHeaderView != null) {
+            ((CBRefreshHeader) mHeaderView).setHeaderBg(resName);
+        }
+    }
+
+    /**
+     * set footer view background
+     *
+     * @param resName
+     */
+    public void setFooterBg(int resName) {
+        if (mFooterView != null) {
+            ((CBRefreshFooter) mFooterView).setFooterBg(resName);
+        }
+    }
+
+    /**
+     * 可以需要换肤的情况下调用此方法（自己定义刷新头去实现相应的换肤操作）
+     *
+     * @param state
+     */
+    public void setStyleChange(int state) {
+        mHeaderView.onStyleChange(state);
+        mFooterView.onStyleChange(state);
+    }
+
+    /**
+     * 是否开启上拉加载
+     *
+     * @param enable
+     */
+    public void setPullLoadMoreEnable(boolean enable) {
+        mEnablePullLoad = enable;
+        if (!mEnablePullLoad) {
+            mFooterView.footerViewHide();
+            mFooterView.setOnClickListener(null);
+        } else {
+            mPullLoading = false;
+            mFooterView.footerViewShow();
+            mFooterView.setState(CBRefreshState.STATE_PULL_UP_TO_LOADMORE);
+            mFooterView.pullUpToLoadmore();
+            mFooterView.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    startLoadMore();
+                }
+            });
+        }
+    }
+
+    /**
+     * 设置刷新头
+     *
+     * @param header
+     * @param <T>
+     */
+    public <T extends CBRefreshHeaderView> void setRefreshHeader(T header) {
+        if (header == null) {
+            return;
+        }
+        setPullRefreshEnable(true);
+        if (mWrapAdapter != null) {
+            mWrapAdapter.notifyItemRemoved(0);
+        }
+        mHeaderView = header;
+        mHeaderView.setLayoutParams(headerParams);
+        initHeaderHeight();
+        if (mWrapAdapter != null) {
+            mWrapAdapter.notifyItemInserted(0);
+        }
+    }
+
+    /**
+     * 设置加载更多的footerview
+     *
+     * @param footer
+     * @param <T>
+     */
+    public <T extends CBRefreshHeaderView> void setLoadMoreFooter(T footer) {
+        if (footer == null) {
+            return;
+        }
+        setPullLoadMoreEnable(true);
+        if (mWrapAdapter != null) {
+            mWrapAdapter.notifyItemRemoved(mWrapAdapter.getItemCount() - 1);
+        }
+        mFooterView = footer;
+        mFooterView.setLayoutParams(headerParams);
+        initHeaderHeight();
+        if (mWrapAdapter != null) {
+            mWrapAdapter.notifyItemInserted(mWrapAdapter.getItemCount() - 1);
+        }
+    }
+
+    /**
+     * 设置刷新时间
+     *
+     * @param time timestamp
+     */
+    public void setRefreshTime(long time) {
+        if (time <= 0) {
+            setRefreshTime(null);
+        } else {
+            refreshTime = time;
+            setRefreshTime(Utils.getTimeDifferent(getContext(), time));
+        }
+    }
+
+    /**
+     * set last refresh time
+     *
+     * @param time
+     */
+    @SuppressLint("SimpleDateFormat")
+    public void setRefreshTime(String time) {
+        if (null == time) {
+            Date now = new Date();
+            SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+            mHeaderView.setRefreshTime(dateFormat.format(now));
+        } else {
+            mHeaderView.setRefreshTime(time);
+        }
+    }
+
+    /**
+     * 显示刷新头动画 对应的停止{@link #stopHeaderAnim()}
+     */
+    public void showHeaderAnim() {
+        if (mEnablePullRefresh && mHeaderView != null) {
+            mHeaderView.showHeaderAnim();
+        }
+    }
+
+    /**
+     * 停止刷新头动画 对应的开始{@link #showHeaderAnim()}
+     */
+    public void stopHeaderAnim() {
+        if (mEnablePullRefresh && mHeaderView != null) {
+            mHeaderView.stopHeaderAnim();
+        }
+    }
+
+    /**
+     * 停止刷新 恢复刷新头
+     */
     public void stopRefresh() {
         if (mPullRefreshing == true) {
             mPullRefreshing = false;
@@ -779,51 +822,82 @@ public class DragableRecyclerView extends RecyclerView {
         }
     }
 
-    private void startLoadMore() {
-        mPullLoading = true;
-        mFooterView.onLoading();
-        mFooterView.setState(CBRefreshState.STATE_REFRESHING);
-        if (mPullRefreshListener != null) {
-            mPullRefreshListener.onLoadMore();
-        }
-    }
-
+    /**
+     * 是否开启侧滑菜单
+     *
+     * @param swipeEnable
+     */
     public void setSwipeEnable(boolean swipeEnable) {
         this.swipeEnable = swipeEnable;
         this.swipeFlag = swipeEnable;
     }
 
+    /**
+     * 是否开启长按拖拽
+     *
+     * @param longPressDragEnabled
+     */
     public void setLongPressDragEnabled(boolean longPressDragEnabled) {
         this.isLongPressDragEnabled = longPressDragEnabled;
         this.longpressDragFlag = longPressDragEnabled;
     }
 
+    /**
+     * 设置长按拖拽监听
+     *
+     * @param onItemDragListener
+     */
     public void setOnItemDragListener(OnItemDragListener onItemDragListener) {
         this.onItemDragListener = onItemDragListener;
     }
 
-    public void showHeaderAnim() {
-        if (mEnablePullRefresh && mHeaderView != null) {
-            mHeaderView.showHeaderAnim();
-        }
-    }
 
-    public void stopHeaderAnim() {
-        if (mEnablePullRefresh && mHeaderView != null) {
-            mHeaderView.stopHeaderAnim();
-        }
-    }
-
+    /**
+     * 长按拖拽监听
+     */
     public interface OnItemDragListener {
+        /**
+         * 长按拖动view 发生改变
+         *
+         * @param viewHolder
+         * @param actionState
+         */
         public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState);
 
+        /**
+         * 移动交换一个位置调用
+         *
+         * @param recyclerView
+         * @param viewHolder
+         * @param fromPos
+         * @param target
+         * @param toPos
+         * @param x
+         * @param y
+         */
         public void onMoved(RecyclerView recyclerView, ViewHolder viewHolder, int fromPos, ViewHolder target, int toPos, int x, int y);
 
+        /**
+         * 拖动view是否具有放大效果
+         *
+         * @return
+         */
         public boolean onDragScaleable();
 
+        /**
+         * 拖拽完成
+         *
+         * @param recyclerView
+         * @param viewHolder
+         */
         public void onDragCompleted(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder);
     }
 
+    /**
+     * 设置侧滑菜单监听
+     *
+     * @param onSwipedMenuItemClickListener
+     */
     public void setOnSwipedMenuItemClickListener(OnSwipedMenuItemClickListener onSwipedMenuItemClickListener) {
         this.onSwipedMenuItemClickListener = onSwipedMenuItemClickListener;
     }
@@ -843,6 +917,11 @@ public class DragableRecyclerView extends RecyclerView {
         public void onMenuItemClick(int position, Adapter<ViewHolder> adapter, SwipeMenu menu, int index);
     }
 
+    /**
+     * 设置recycleview的onitem监听
+     *
+     * @param onItemClickListener
+     */
     public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
         this.onItemClickListener = onItemClickListener;
     }
@@ -868,6 +947,11 @@ public class DragableRecyclerView extends RecyclerView {
 //        }
     }
 
+    /**
+     * 设置下拉刷新监听
+     *
+     * @param mPullRefreshListener
+     */
     public void setPullRefreshListener(OnPullRefreshListener mPullRefreshListener) {
         this.mPullRefreshListener = mPullRefreshListener;
     }

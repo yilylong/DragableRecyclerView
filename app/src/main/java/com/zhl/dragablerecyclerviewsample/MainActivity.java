@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
         initData();
         mRecyclerView = (DragableRecyclerView) findViewById(R.id.recyclerview);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        // set creator
+        // 设置侧滑菜单
         mRecyclerView.setMenuCreator(new SwipeMenuCreator() {
             @Override
             public void create(SwipeMenu menu) {
@@ -54,14 +54,21 @@ public class MainActivity extends AppCompatActivity {
                 menu.addMenuItem(collectionItem);
             }
         });
+        // 开启刷新头动画
         mRecyclerView.showHeaderAnim();
+        // 是否开启侧滑
         mRecyclerView.setSwipeEnable(true);
+        // 是否可以长按拖拽
         mRecyclerView.setLongPressDragEnabled(true);
+        // 设置自定义的下拉刷新和上拉加载刷新头
 //        mRecyclerView.setRefreshHeader(new CustomHeader(this));
 //        mRecyclerView.setLoadMoreFooter(new CustomFooter(this));
         mRecyclerView.setAdapter(adapter = new MyAdapter());
+        // 是否开启下拉刷新
         mRecyclerView.setPullRefreshEnable(true);
+        // 是否开启上拉加载
         mRecyclerView.setPullLoadMoreEnable(true);
+        // 设置长按拖拽的监听
         mRecyclerView.setOnItemDragListener(new DragableRecyclerView.OnItemDragListener() {
             @Override
             public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
@@ -84,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
                 viewHolder.itemView.setBackgroundResource(R.color.gray);
             }
         });
+        // 设置侧滑菜单的监听
         mRecyclerView.setOnSwipedMenuItemClickListener(new DragableRecyclerView.OnSwipedMenuItemClickListener() {
 
             @Override
@@ -96,12 +104,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        // 设置recyclerview的item点击监听
         mRecyclerView.setOnItemClickListener(new DragableRecyclerView.OnItemClickListener() {
             @Override
             public void onItemClick(int position, RecyclerView.Adapter<RecyclerView.ViewHolder> adapter, View ConvertView) {
                 Toast.makeText(MainActivity.this,"点击第"+position+"项",Toast.LENGTH_SHORT).show();
             }
         });
+        // 设置下拉刷新的监听
         mRecyclerView.setPullRefreshListener(new DragableRecyclerView.OnPullRefreshListener() {
             @Override
             public void onRefresh() {
