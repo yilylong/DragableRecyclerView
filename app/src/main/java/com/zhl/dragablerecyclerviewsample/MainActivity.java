@@ -136,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
             }
             @Override
             public void onUpdateRefreshTime(long time) {
-
+                mRecyclerView.setRefreshTime(time);
             }
         });
     }
