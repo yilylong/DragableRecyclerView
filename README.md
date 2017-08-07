@@ -149,7 +149,7 @@ swipe menu
      mRecyclerView.setLoadMoreFooter(new CustomFooter(this));
 
 
-另外listview 版本的看这里：
+另外listview 版本的看这里：[CBPullRefreshListView](https://github.com/yilylong/CBPullRefreshListView)
 
 
 
