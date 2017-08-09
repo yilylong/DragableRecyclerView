@@ -1,7 +1,9 @@
 package com.zhl.dragablerecyclerview.swipemenu;
 
 import android.content.Context;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.LinearInterpolator;
@@ -46,11 +48,11 @@ public abstract class SwipeMenuAdapter extends RecyclerView.Adapter<RecyclerView
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        if(viewType==TYPE_ITEM_HEADER){
+        if (viewType == TYPE_ITEM_HEADER) {
             return new SimpleViewHolder(getHeaderView());
-        }else if(viewType==TYPE_ITEM_FOOTER){
+        } else if (viewType == TYPE_ITEM_FOOTER) {
             return new SimpleViewHolder(getFooterView());
-        }else {
+        } else {
             RecyclerView.ViewHolder viewHolder = mAdapter.onCreateViewHolder(parent, viewType);
             SwipeMenu menu = new SwipeMenu(mContext);
             menu.setViewType(getItemViewType(viewHolder.getAdapterPosition()));
@@ -67,12 +69,12 @@ public abstract class SwipeMenuAdapter extends RecyclerView.Adapter<RecyclerView
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        if(getItemViewType(position)==TYPE_ITEM_HEADER||getItemViewType(position)==TYPE_ITEM_FOOTER){
+        if (getItemViewType(position) == TYPE_ITEM_HEADER || getItemViewType(position) == TYPE_ITEM_FOOTER) {
             return;
         }
         int contentPos = position;
-        if(isPullRefreshEnable()){
-            contentPos = position-1;
+        if (isPullRefreshEnable()) {
+            contentPos = position - 1;
         }
         ((SwipeMenuLayout) holder.itemView).setPosition(contentPos);
         mAdapter.onBindViewHolder(((SwipeMenuViewHolder) holder).getOrignalHolder(), contentPos);
@@ -82,12 +84,12 @@ public abstract class SwipeMenuAdapter extends RecyclerView.Adapter<RecyclerView
     public int getItemViewType(int position) {
         if ((position == 0 && isPullRefreshEnable())) {
             return TYPE_ITEM_HEADER;
-        } else if ((position == getItemCount()-1 && isPullLoadMoreEnable())) {
+        } else if ((position == getItemCount() - 1 && isPullLoadMoreEnable())) {
             return TYPE_ITEM_FOOTER;
         }
         int contentPos = position;
-        if(isPullRefreshEnable()){
-            contentPos = position-1;
+        if (isPullRefreshEnable()) {
+            contentPos = position - 1;
         }
         return mAdapter.getItemViewType(contentPos);
     }
@@ -103,6 +105,74 @@ public abstract class SwipeMenuAdapter extends RecyclerView.Adapter<RecyclerView
         }
     }
 
+    @Override
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        RecyclerView.LayoutManager manager = recyclerView.getLayoutManager();
+        if (manager instanceof GridLayoutManager) {
+            final GridLayoutManager gridManager = ((GridLayoutManager) manager);
+            gridManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+                @Override
+                public int getSpanSize(int position) {
+                    return (isHeader(position) || isFooter(position))
+                            ? gridManager.getSpanCount() : 1;
+                }
+            });
+        }
+        mAdapter.onAttachedToRecyclerView(recyclerView);
+    }
+
+    @Override
+    public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
+        mAdapter.onDetachedFromRecyclerView(recyclerView);
+    }
+
+    @Override
+    public void onViewAttachedToWindow(RecyclerView.ViewHolder holder) {
+        super.onViewAttachedToWindow(holder);
+        ViewGroup.LayoutParams lp = holder.itemView.getLayoutParams();
+        if (lp != null
+                && lp instanceof StaggeredGridLayoutManager.LayoutParams
+                && (isHeader(holder.getLayoutPosition()) || isFooter(holder.getLayoutPosition()))) {
+            StaggeredGridLayoutManager.LayoutParams p = (StaggeredGridLayoutManager.LayoutParams) lp;
+            p.setFullSpan(true);
+        }
+        mAdapter.onViewAttachedToWindow(holder);
+    }
+
+    private boolean isFooter(int layoutPosition) {
+        return getItemViewType(layoutPosition) == TYPE_ITEM_FOOTER;
+    }
+
+
+    private boolean isHeader(int layoutPosition) {
+        return getItemViewType(layoutPosition) == TYPE_ITEM_HEADER;
+    }
+
+    @Override
+    public void onViewDetachedFromWindow(RecyclerView.ViewHolder holder) {
+        mAdapter.onViewDetachedFromWindow(holder);
+    }
+
+    @Override
+    public void onViewRecycled(RecyclerView.ViewHolder holder) {
+        mAdapter.onViewRecycled(holder);
+    }
+
+    @Override
+    public boolean onFailedToRecycleView(RecyclerView.ViewHolder holder) {
+        return mAdapter.onFailedToRecycleView(holder);
+    }
+
+    @Override
+    public void registerAdapterDataObserver(RecyclerView.AdapterDataObserver observer) {
+        mAdapter.registerAdapterDataObserver(observer);
+    }
+
+    @Override
+    public void unregisterAdapterDataObserver(RecyclerView.AdapterDataObserver observer) {
+        mAdapter.unregisterAdapterDataObserver(observer);
+    }
 
     @Override
     public void onItemClick(SwipeMenuView view, SwipeMenu menu, int index) {
